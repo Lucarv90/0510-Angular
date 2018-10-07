@@ -1,0 +1,185 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+	<meta charset="utf-8" />
+
+    <link href="Content/bootstrap.min.css" rel="stylesheet" />
+    <link href="Content/bootstrap-theme.min.css" rel="stylesheet" />
+
+    <script src="scripts/jquery-1.9.1.min.js"></script>
+    <script src="scripts/bootstrap.min.js"></script>
+    <script src="scripts/angular.min.js"></script>
+
+    <script>
+        var programa = angular.module('programa', []);
+
+        programa.controller('consulta-controller', function ($scope, $http){
+
+        $scope.consultar = function(){
+            $http.get("http://localhost:4629/api/aluno/listartodos")
+                 .then(function(d){
+                     $scope.alunos = d.data;
+                 })
+                 .catch(function(e){
+                     $scope.mensagem = e.data;
+                 });
+        };
+
+        $scope.obterporid = function (id) {
+
+            $http.get("http://localhost:4629/api/aluno/obterporid?id=" + id)
+                .then(function (d) {
+                    $scope.aluno = d.data;
+                })
+                .catch(function (e) {
+                    $scope.mensagem = e.data;
+                });
+        };
+
+        $scope.excluir = function () {
+            $http.delete("http://localhost:4629/api/aluno/excluir?id=" + $scope.aluno.IdAluno)
+                .then(function (d) {
+                    $scope.mensagem = d.data;
+                    $scope.consultar();
+                })
+                .catch(function (e) {
+                    $scope.mensagem = e.data;
+                });
+        };
+
+        $scope.atualizar = function () {
+            $http.put("http://localhost:4629/api/aluno/atualizar", $scope.aluno)
+                .then(function (d) {
+                    $scope.mensagem = d.data;
+                    $scope.consultar();
+                })
+                .catch(function (e) {
+                    $scope.mensagem = e.data;
+                });
+        };
+
+        });
+    </script>
+
+</head>
+<body class="container" ng-app="programa">
+    <div ng-controller="consulta-controller">
+        <h2>Consulta de Alunos</h2>
+        <a href="index.html">Página inicial</a>
+        <hr />
+        <div>
+            <strong>{{mensagem}}</strong>
+        </div>
+
+        <table id="tabela" class="table table-bordered" ng-init="consultar()">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Nome do Aluno</th>
+                    <th>Matricula</th>
+                    <th>Data de Nascimento</th>
+                    <th>Operações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="a in alunos">
+                    <td>{{a.IdAluno}}</td>
+                    <td>{{a.Nome}}</td>
+                    <td>{{a.Matricula}}</td>
+                    <td>{{a.DataNascimento | date : 'dd/MM/yyyy'}}</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm"
+                                data-target="#janelaexclusao"
+                                data-toggle="modal"
+                                ng-click="obterporid(a.IdAluno)">
+                            Excluir
+                        </button>
+                        <button class="btn btn-primary btn-sm"
+                                data-target="#janelaedicao"
+                                data-toggle="modal"
+                                ng-click="obterporid(a.IdAluno)">
+                            Atualizar
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="5">
+                        Quantidade de alunos: {{alunos.length}}
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <div id="janelaexclusao" class="modal fade">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-danger">
+                        <h3>Excluir</h3>
+                    </div>
+                    <div class="modal-body">
+                        Código do Aluno: <strong>{{aluno.IdAluno}}</strong>
+                        <br/>
+                        Nome do Aluno: <strong>{{aluno.Nome}}</strong>
+                        <br/>
+                        Matricula: <strong>{{aluno.Matricula}}</strong>
+                        <br/>
+                        Data de Nascimento: <strong>{{aluno.DataNascimento | date : dd/MM/yyyy}}</strong>
+                    </div>
+                    <div class="modal-footer">
+                        <button data-dismiss="modal" class="btn btn-default">
+                            Fechar
+                        </button>
+                        <button data-dismiss="modal" class="btn btn-danger" ng-click="excluir()">
+                            Excluir
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="janelaedicao" class="modal fade">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary">
+                        <h3>Atualizar Cadastro</h3>
+                    </div>
+                    <div class="modal-body">
+                        <label>Código do Aluno:</label>
+                        <input type="text" class="form-control"
+                               readonly="readonly"
+                               ng-model="aluno.IdAluno" />
+                        <br/>
+
+                        <label>Nome do Aluno:</label>
+                        <input type="text" class="form-control" 
+                               ng-model="aluno.Nome"/>
+                        <br/>
+
+                        <label>Matricula:</label>
+                        <input type="text" class="form-control"
+                               ng-model="aluno.Matricula" />
+                        <br/>
+
+                        <label>Data de Nascimento:</label>
+                        <input type="date" class="form-control" 
+                               ng-model="aluno.DataNascimento"
+                               value="{{aluno.DataNascimento | date : 'yyyy-MM-dd'}}"/>
+                    </div>
+                    <div class="modal-footer">
+                        <button data-dismiss="modal" class="btn btn-default">
+                            Fechar
+                        </button>
+                        <button data-dismiss="modal" class="btn btn-primary"
+                                ng-click="atualizar()">
+                            Atualizar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
